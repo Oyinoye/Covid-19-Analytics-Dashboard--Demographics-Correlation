@@ -1,78 +1,427 @@
 import dash
+import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 
-# Since we're adding callbacks to elements that don't exist in the app.layout,
-# Dash will raise an exception to warn us that we might be
-# doing something wrong.
-# In this case, we're adding the elements through a callback, so we can ignore
-# the exception.
-app = dash.Dash(__name__, suppress_callback_exceptions=True)
+from app import app
 
-app.layout = html.Div([
-    dcc.Location(id='url', refresh=False),
-    html.Div(id='page-content')
-])
+dash_colors = {
+    'background': '#111111',
+    'text': '#BEBEBE',
+    'grid': '#333333',
+    'red': '#BF0000',
+    'blue': '#466fc2',
+    'green': '#5bc246'
+}
+
+layout = html.Div(
+    [   
+        dbc.Jumbotron(
+            [
+                dbc.Container(
+                    dbc.Row(
+                        [
+                            dbc.Col(
+                                dcc.Link(
+                                    href='/',
+                                    refresh=False,
+                                    children=(
+                                        html.H1(children='HOME', id='home-nav',
+                                            style={
+                                                'textAlign': 'center',
+                                                'color': dash_colors['green'],
+                                                'margin': 0,
+                                                'padding': 50,
+                                                'cursor': 'pointer',
+                                                },      
+                                        ),
+                                    ),
+                                    style={
+                                        'textDecoration': 'none'
+                                    }
+                                ),
+                                
+                            ),
+
+                            dbc.Col(
+                                dcc.Link(
+                                    href='/form',
+                                    refresh=False,
+                                    children=(
+                                        html.H1(children='FORM', id='form-nav',
+                                        style={
+                                            'textAlign': 'center',
+                                            'color': dash_colors['green'],
+                                            'margin': 0,
+                                            'padding': 50,
+                                            'cursor': 'pointer'
+                                            },      
+                                        ),
+                                    ),
+                                    style={
+                                        'textDecoration': 'none'
+                                    }
+                                )
+                            ),
+
+                            dbc.Col(
+                                dcc.Link(
+                                    href='/insights',
+                                    refresh=False,
+                                    children=(
+                                        html.H1(children='INSIGHTS', id='insights-nav',
+                                        style={
+                                            'textAlign': 'center',
+                                            'color': dash_colors['green'],
+                                            'margin': 0,
+                                            'padding': 50,
+                                            'cursor': 'pointer'
+                                            },      
+                                        ),
+                                    ),
+                                    style={
+                                        'textDecoration': 'none'
+                                    }
+                                )
+                            ),
+                        ]
+                    ),
+                    fluid=True,
+                )
+            ],
+            fluid=True,
+            style={
+                'textAlign': 'center',
+                'color': dash_colors['green'],
+                'backgroundColor': 'black',
+                'marginTop': 0,
+                'padding': 0
+            }
+        ),
+        
+        html.H1(children='Add to the Database',
+        style={
+            'textAlign': 'center',
+            'color': dash_colors['text'],
+            'marginTop': 40
+            }
+        ),
+
+        html.Div(children='Please enter your additional information here to be viewed in INSIGHTS.', style={
+            'textAlign': 'center',
+            'color': dash_colors['text']
+            }),
+        
+        html.Div(children='We keep your infomation safe and protected.', style={
+            'textAlign': 'center',
+            'color': dash_colors['text'],
+            'marginBottom': 50
+            }),
+
+        dbc.Container(
+            dbc.Row(
+                [
+                    dbc.Col(),
+
+                    dbc.Col(
+                        [
+                            html.Hr(style={'color': 'white'}),
+
+                            dbc.FormGroup(
+                                [
+                                    dbc.Label("First name", html_for="form-first-name", width=2),
+                                    dbc.Col(
+                                        dbc.Input(
+                                            type="text", id="form-first-name", placeholder="Enter first name"
+                                        ),
+                                        width=10,
+                                    ),
+                                ],
+                                row=True,
+                            ),
+
+                            dbc.FormGroup(
+                                [
+                                    dbc.Label("Last name", html_for="form-last-name", width=2),
+                                    dbc.Col(
+                                        dbc.Input(
+                                            type="text", id="form-last-name", placeholder="Enter last name"
+                                        ),
+                                        width=10,
+                                    ),
+                                ],
+                                row=True,
+                            ),
 
 
-index_page = html.Div([
-    dcc.Link('Go to Page 1', href='/page-1'),
-    html.Br(),
-    dcc.Link('Go to Page 2', href='/page-2'),
-])
 
-page_1_layout = html.Div([
-    html.H1('Page 1'),
-    dcc.Dropdown(
-        id='page-1-dropdown',
-        options=[{'label': i, 'value': i} for i in ['LA', 'NYC', 'MTL']],
-        value='LA'
-    ),
-    html.Div(id='page-1-content'),
-    html.Br(),
-    dcc.Link('Go to Page 2', href='/page-2'),
-    html.Br(),
-    dcc.Link('Go back to home', href='/'),
-])
+                            dbc.FormGroup(
+                                [
+                                    dbc.Label("Date of Birth", html_for="form-birth-date", width=2),
+                                    dbc.Col(
+                                        dbc.Input(
+                                            type="date",
+                                            id="form-birth-date",
+                                            style={
+                                                'height': '4rem'
+                                            }
+                                        ),
+                                        width=10,
+                                    ),
+                                ],
+                                row=True,
+                            ),
 
-@app.callback(dash.dependencies.Output('page-1-content', 'children'),
-              [dash.dependencies.Input('page-1-dropdown', 'value')])
-def page_1_dropdown(value):
-    return 'You have selected "{}"'.format(value)
+                            dbc.FormGroup(
+                                [
+                                    dbc.Label("Ethnic origin", html_for="ethnicity", width=2),
+                                    dbc.Col(
+                                        dcc.Dropdown(
+                                            id='ethnic-origin',
+                                            options=[
+                                                {'label': '{}'.format(i), 'value': i} for i in [
+                                                    'Arabian', 'Asian', 'Black African', 'Caucasian', 'Hispanic', 'Native American',
+                                                ]
+                                            ]
+                                        ),
+                                    ),
+                                ],
+                                row=True,
+                            ),
 
+                            dbc.FormGroup(
+                                [
+                                    dbc.Label("Occupation", html_for="occupation", width=2),
+                                    dbc.Col(
+                                        dcc.Dropdown(
+                                            id='occupation',
+                                            options=[
+                                                {'label': '{}'.format(i), 'value': i} for i in [
+                                                    'Professional', 'Manager', 'Technician', 'Clerical Worker', 'Service & Support Workers', 'Skilled Agriculture Worker', 'Forestry & Fishery Worker', 'Craft Worker', 'Machine Operator', 'Technician', 'Armed Force', 'Other'
+                                                ]
+                                            ]
+                                        ),
+                                    ),
+                                ],
+                                row=True,
+                            ),
 
-page_2_layout = html.Div([
-    html.H1('Page 2'),
-    dcc.RadioItems(
-        id='page-2-radios',
-        options=[{'label': i, 'value': i} for i in ['Orange', 'Blue', 'Red']],
-        value='Orange'
-    ),
-    html.Div(id='page-2-content'),
-    html.Br(),
-    dcc.Link('Go to Page 1', href='/page-1'),
-    html.Br(),
-    dcc.Link('Go back to home', href='/')
-])
+                            dbc.FormGroup(
+                                [
+                                    dbc.Label("Address 1", html_for="address-line1", width=2),
+                                    dbc.Col(
+                                        dbc.Input(
+                                            type="text", id="address-line1", placeholder="Enter your address (Line 1)"
+                                        ),
+                                        width=10,
+                                    ),
+                                ],
+                                row=True,
+                            ),
 
-@app.callback(dash.dependencies.Output('page-2-content', 'children'),
-              [dash.dependencies.Input('page-2-radios', 'value')])
-def page_2_radios(value):
-    return 'You have selected "{}"'.format(value)
+                            dbc.FormGroup(
+                                [
+                                    dbc.Label("Address 2", html_for="address-line2", width=2),
+                                    dbc.Col(
+                                        dbc.Input(
+                                            type="text", id="address-line2", placeholder="Enter your address (Line 2)"
+                                        ),
+                                        width=10,
+                                    ),
+                                ],
+                                row=True,
+                            ),
 
+                            dbc.FormGroup(
+                                [
+                                    dbc.Label("Town", html_for="town", width=2),
+                                    dbc.Col(
+                                        dbc.Input(
+                                            type="text", id="town", placeholder="Enter Town/City"
+                                        ),
+                                        width=10,
+                                    ),
+                                ],
+                                row=True,
+                            ),
 
-# Update the index
-@app.callback(dash.dependencies.Output('page-content', 'children'),
-              [dash.dependencies.Input('url', 'pathname')])
-def display_page(pathname):
-    if pathname == '/page-1':
-        return page_1_layout
-    elif pathname == '/page-2':
-        return page_2_layout
-    else:
-        return index_page
-    # You could also return a 404 "URL not found" page here
+                            dbc.FormGroup(
+                                [
+                                    dbc.Label("Country", html_for="country", width=2),
+                                    dbc.Col(
+                                        dcc.Dropdown(
+                                            id='country',
+                                            options=[
+                                                {'label': '{}'.format(i), 'value': i} for i in [
+                                                    "South Africa", "England - United Kingdom", "Northern Ireland - United Kingdom", "Scotland - United Kingdom", "Wales - United Kingdom", "United States of America"
+                                                ]
+                                            ]
+                                        ),
+                                    ),
+                                ],
+                                row=True,
+                            ),
 
+                            dbc.FormGroup(
+                                [
+                                    dbc.Label("Zip Code", html_for="zip-code", width=2),
+                                    dbc.Col(
+                                        dbc.Input(
+                                            type="text", id="zip-code", placeholder="Enter Zip Code"
+                                        ),
+                                        width=10,
+                                    ),
+                                ],
+                                row=True,
+                            ),
+                            
+                            dbc.FormGroup(
+                                [
+                                    dbc.Label("Telephone", html_for="telephone", width=2),
+                                    dbc.Col(
+                                        dbc.Input(
+                                            type="tel", id="telephone", placeholder="Enter telephone number"
+                                        ),
+                                        width=10,
+                                    ),
+                                ],
+                                row=True,
+                            ),
 
-if __name__ == '__main__':
-    app.run_server(debug=True)
+                            dbc.FormGroup(
+                                [
+                                    dbc.Label("Symptoms?", html_for="symptoms", width=2),
+                                    dbc.Col(
+                                        dbc.RadioItems(
+                                            id="symptoms",
+                                            options=[
+                                                {"label": "False", "value": 0},
+                                                {"label": "True", "value": 1},
+                                            ],
+                                            inline=True,
+                                        ),
+                                        width=10,
+                                    ),
+                                ],
+                                row=True,
+                            ),
+
+                            dbc.FormGroup(
+                                [
+                                    dbc.Label("Vaccinated", html_for="vaccinated", width=2),
+                                    dbc.Col(
+                                        dbc.RadioItems(
+                                            id="vaccinated",
+                                            options=[
+                                                {"label": "False", "value": 0},
+                                                {"label": "True", "value": 1},
+                                            ],
+                                            inline=True,
+                                        ),
+                                        width=10,
+                                    ),
+                                ],
+                                row=True,
+                            ),
+
+                            dbc.FormGroup(
+                                [
+                                    dbc.Label("Test date", html_for="test-date", width=2),
+                                    dbc.Col(
+                                        dbc.Input(
+                                            type="date",
+                                            id="test-date",
+                                            style={
+                                                'height': '4rem'
+                                            }
+                                        ),
+                                        width=10,
+                                    ),
+                                ],
+                                row=True,
+                            ),
+
+                            dbc.FormGroup(
+                                [
+                                    dbc.Label("Test result", html_for="test-result", width=2),
+                                    dbc.Col(
+                                        dbc.RadioItems(
+                                            id="test-result",
+                                            options=[
+                                                {"label": "Negative", "value": 0},
+                                                {"label": "Positive", "value": 1},
+                                            ],
+                                            inline=True,
+                                        ),
+                                        width=10,
+                                    ),
+                                ],
+                                row=True,
+                            ),
+
+                            dbc.FormGroup(
+                                [
+                                    dbc.Label("Hospitalized", html_for="hospitalized", width=2),
+                                    dbc.Col(
+                                        dbc.RadioItems(
+                                            id="hospitalized",
+                                            options=[
+                                                {"label": "False", "value": 0},
+                                                {"label": "True", "value": 1},
+                                            ],
+                                            inline=True,
+                                        ),
+                                        width=10,
+                                    ),
+                                ],
+                                row=True,
+                            ),
+
+                            dbc.FormGroup(
+                                [
+                                    dbc.Label("Recovered", html_for="recovered", width=2),
+                                    dbc.Col(
+                                        dbc.RadioItems(
+                                            id="recovered",
+                                            options=[
+                                                {"label": "False", "value": 0},
+                                                {"label": "True", "value": 1},
+                                            ],
+                                            inline=True,
+                                        ),
+                                        width=10,
+                                    ),
+                                ],
+                                row=True,
+                            ),
+
+                            html.Hr(style={'color': 'white'}),
+
+                            dbc.FormGroup(
+                                [
+                                    dbc.Label("", html_for="submit", width=2),
+                                    dbc.Col(
+                                        dbc.Button("SUBMIT", outline=True, color="light", block=True, className="mr-1 mt-3 mb-5"),
+                                        width=10,
+                                    ),
+                                ],
+                                row=True,
+                            ),
+                            
+                        ],
+                        style = { 
+                            'textAlign': 'center',
+                            'color': dash_colors['green'],
+                            'cursor': 'pointer'
+                        },
+                        width=6  
+                    ),
+
+                    dbc.Col(),
+                ]
+            ),
+            fluid=True,
+        ),
+        
+    ]
+)

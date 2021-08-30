@@ -1,3 +1,15 @@
+# Dashboard (Work-in-Progress)
+
+This project is done in fulflment of a data analytics task to determine correlation between infection rates and certain factors in some key cities. 
+
+For this to be done, additional data must also be included which is why a form page has been included.
+
+The insights page gives insights unique to the task based on dummy data populated to show as a prototype for the specific use case.
+
+I am still working on this project and more updates will seen in the near future.
+
+This dashboard is inspired by the dashboard built by Greg Rafferty whose documentation is shown below (for the home page):
+
 # COVID-19
 A web dashboard deployed on Heroku at [https://covid-19-raffg.herokuapp.com/](https://covid-19-raffg.herokuapp.com/). Built in Python and [Dash](https://dash.plot.ly/), with charts made in [Plotly](https://plot.ly/). The data is provided by [Johns Hopkins Center for Systems Science and Engineering](https://github.com/CSSEGISandData/COVID-19) and automatically updates to the dashboard nightly.
 
