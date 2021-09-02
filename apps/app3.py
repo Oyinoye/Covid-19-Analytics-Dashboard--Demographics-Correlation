@@ -3,6 +3,7 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 import plotly.express as px
 import pandas as pd
+import dash_bootstrap_components as dbc
 
 
 from app import app
@@ -36,8 +37,109 @@ layout = html.Div([
     # ),
     # html.Div(id='app-1-display-value'),
     # dcc.Link('Go to App 2', href='/apps/app2')
+
+    dbc.Jumbotron(
+            [
+                dbc.Container(
+                    dbc.Row(
+                        [
+                            dbc.Col(
+                                dcc.Link(
+                                    href='/',
+                                    refresh=False,
+                                    children=(
+                                        html.H1(children='HOME', id='home-nav',
+                                            style={
+                                                'textAlign': 'center',
+                                                'color': dash_colors['green'],
+                                                'margin': 0,
+                                                'padding': 50,
+                                                'cursor': 'pointer',
+                                                },      
+                                        ),
+                                    ),
+                                    style={
+                                        'textDecoration': 'none'
+                                    }
+                                ),
+                                
+                            ),
+
+                            dbc.Col(
+                                dcc.Link(
+                                    href='/form',
+                                    refresh=False,
+                                    children=(
+                                        html.H1(children='FORM', id='form-nav',
+                                        style={
+                                            'textAlign': 'center',
+                                            'color': dash_colors['green'],
+                                            'margin': 0,
+                                            'padding': 50,
+                                            'cursor': 'pointer'
+                                            },      
+                                        ),
+                                    ),
+                                    style={
+                                        'textDecoration': 'none'
+                                    }
+                                )
+                            ),
+
+                            dbc.Col(
+                                dcc.Link(
+                                    href='/insights',
+                                    refresh=False,
+                                    children=(
+                                        html.H1(children='INSIGHTS', id='insights-nav',
+                                        style={
+                                            'textAlign': 'center',
+                                            'color': dash_colors['green'],
+                                            'margin': 0,
+                                            'padding': 50,
+                                            'cursor': 'pointer'
+                                            },      
+                                        ),
+                                    ),
+                                    style={
+                                        'textDecoration': 'none'
+                                    }
+                                )
+                            ),
+                        ]
+                    ),
+                    fluid=True,
+                )
+            ],
+            fluid=True,
+            style={
+                'textAlign': 'center',
+                'color': dash_colors['green'],
+                'backgroundColor': 'black',
+                'marginTop': 0,
+                'padding': 0
+            }
+        ),
+        
+        html.H1(children='Insights into the Effects of Demographics on the Covid-19 Pandemic.',
+        style={
+            'textAlign': 'center',
+            'color': dash_colors['text'],
+            'marginTop': 40
+            }
+        ),
+
+        html.Div(children='Effects of income and education on the rate of spread of the pandemic.', style={
+            'textAlign': 'center',
+            'color': dash_colors['text']
+            }),
+        
+        html.Div(children='Drag the slider to see the effects on the population.', style={
+            'textAlign': 'center',
+            'color': dash_colors['text'],
+            'marginBottom': 50
+            }),
     
-    html.H1('Insights into the Effects of Demographics on the Covid-19 Pandemic.', style={'textAlign':'center'}),
     html.Div([
           html.Div([ 
               html.Label('Population'),
