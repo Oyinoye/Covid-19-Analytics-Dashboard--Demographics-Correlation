@@ -2,7 +2,8 @@ import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
 
-import app
+from app import app
+from app import *
 
 from apps import app1, app2, app3
 
