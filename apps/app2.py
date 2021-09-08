@@ -6,17 +6,17 @@ import dash_html_components as html
 from app import app
 
 dash_colors = {
-    'background': '#111111',
+    'background': '#dee9fa',
     'text': '#BEBEBE',
     'grid': '#333333',
     'red': '#BF0000',
-    'blue': '#466fc2',
+    'blue': '#10274a',
     'green': '#5bc246'
 }
 
-layout = html.Div(
+layout = html.Div( style={'backgroundColor': dash_colors['background']}, children =
     [   
-        dbc.Jumbotron(
+        dbc.Navbar(
             [
                 dbc.Container(
                     dbc.Row(
@@ -29,9 +29,9 @@ layout = html.Div(
                                         html.H1(children='HOME', id='home-nav',
                                             style={
                                                 'textAlign': 'center',
-                                                'color': dash_colors['green'],
+                                                'color': '#b5d3ff',
                                                 'margin': 0,
-                                                'padding': 50,
+                                                'padding': 10,
                                                 'cursor': 'pointer',
                                                 },      
                                         ),
@@ -51,9 +51,9 @@ layout = html.Div(
                                         html.H1(children='FORM', id='form-nav',
                                         style={
                                             'textAlign': 'center',
-                                            'color': dash_colors['green'],
+                                            'color': '#b5d3ff',
                                             'margin': 0,
-                                            'padding': 50,
+                                            'padding': 10,
                                             'cursor': 'pointer'
                                             },      
                                         ),
@@ -61,7 +61,10 @@ layout = html.Div(
                                     style={
                                         'textDecoration': 'none'
                                     }
-                                )
+                                ),
+                                style = {
+                                    'display': 'inline'
+                                }
                             ),
 
                             dbc.Col(
@@ -72,9 +75,9 @@ layout = html.Div(
                                         html.H1(children='INSIGHTS', id='insights-nav',
                                         style={
                                             'textAlign': 'center',
-                                            'color': dash_colors['green'],
+                                            'color': '#b5d3ff',
                                             'margin': 0,
-                                            'padding': 50,
+                                            'padding': 10,
                                             'cursor': 'pointer'
                                             },      
                                         ),
@@ -87,19 +90,24 @@ layout = html.Div(
                         ]
                     ),
                     fluid=True,
+                    style={
+                        'color': '#e6f0ff',
+                        'display':'inline',
+                        'backgroundColor': dash_colors['blue'],
+                    }
                 )
             ],
-            fluid=True,
+            sticky=True,
             style={
                 'textAlign': 'center',
-                'color': dash_colors['green'],
-                'backgroundColor': 'black',
+                'color': '#10274a',
+                'backgroundColor': dash_colors['blue'],
                 'marginTop': 0,
-                'padding': 0
+                'padding': 0,
             }
         ),
         
-        html.H1(children='Add to the Database',
+        html.H1(children='Update the Database',
         style={
             'textAlign': 'center',
             'color': dash_colors['text'],
@@ -401,7 +409,7 @@ layout = html.Div(
                                 [
                                     dbc.Label("", html_for="submit", width=2),
                                     dbc.Col(
-                                        dbc.Button("SUBMIT", outline=True, color="light", block=True, className="mr-1 mt-3 mb-5"),
+                                        dbc.Button("SUBMIT", outline=False, color='primary', block=True, className="mr-1 mt-3 mb-5"),
                                         width=10,
                                     ),
                                 ],
@@ -411,7 +419,7 @@ layout = html.Div(
                         ],
                         style = { 
                             'textAlign': 'center',
-                            'color': dash_colors['green'],
+                            'color': 'black',
                             'cursor': 'pointer'
                         },
                         width=6  

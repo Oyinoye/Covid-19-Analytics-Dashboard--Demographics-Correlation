@@ -3,6 +3,7 @@ import dash_core_components as dcc
 from dash_core_components.Link import Link
 import dash_html_components as html
 import dash_bootstrap_components as dbc
+import dash_table as dtb
 from dash.dependencies import Input, Output
 
 import pandas as pd
@@ -17,620 +18,60 @@ from app import app
 app.title = 'COVID-19'
 
 dash_colors = {
-    'background': '#111111',
+    'background': '#dee9fa',
     'text': '#BEBEBE',
     'grid': '#333333',
     'red': '#BF0000',
-    'blue': '#466fc2',
+    'blue': '#10274a',
     'green': '#5bc246'
 }
 
-df_worldwide = pd.read_csv('data/df_worldwide.csv')
-df_worldwide['percentage'] = df_worldwide['percentage'].astype(str)
-df_worldwide['date'] = pd.to_datetime(df_worldwide['date'])
+# ------FRESH START---------
 
-# selects the "data last updated" date
-update = df_worldwide['date'].dt.strftime('%B %d, %Y').iloc[-1]
+input_file_name_us = 'data/raw_data_csv/US Data_Case by county.csv'
+input_file_name_us_demo = 'data/raw_data_csv/US_demographics_prepped.csv'
+input_file_name_uk = 'data/raw_data_csv/UK Data_Case by region.csv'
+input_file_name_uk_demo = 'data/raw_data_csv/UK Demographics 2020.csv'
+input_file_name_sa = 'data/raw_data_csv/SA Data_Case by County.csv'
 
-available_countries = sorted(df_worldwide['Country/Region'].unique())
+df_us = pd.read_csv(input_file_name_us)
+df_uk = pd.read_csv(input_file_name_uk)
+df_sa = pd.read_csv(input_file_name_sa)
 
-states = ['Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California',
-          'Colorado', 'Connecticut', 'Delaware', 'District of Columbia',
-          'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana',
-          'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland',
-          'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi',
-          'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
-          'New Jersey', 'New Mexico', 'New York', 'North Carolina',
-          'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania',
-          'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee',
-          'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington',
-          'West Virginia', 'Wisconsin', 'Wyoming']
+table_head_sa = list(df_sa.columns.values)
+table_head_uk = list(df_sa.columns.values)
+table_head_us = list(df_sa.columns.values).pop()
 
-eu = ['Albania', 'Andorra', 'Austria', 'Belarus', 'Belgium',
-      'Bosnia and Herzegovina', 'Bulgaria', 'Croatia', 'Cyprus',
-      'Czech Republic', 'Denmark', 'Estonia', 'Finland', 'France',
-      'Germany', 'Greece', 'Hungary', 'Iceland', 'Ireland', 'Italy',
-      'Kosovo', 'Latvia', 'Liechtenstein', 'Lithuania', 'Luxembourg',
-      'Malta', 'Moldova', 'Monaco', 'Montenegro', 'Netherlands',
-      'North Macedonia', 'Norway', 'Poland', 'Portugal', 'Romania',
-      'San Marino', 'Serbia', 'Slovakia', 'Slovenia', 'Spain', 'Sweden',
-      'Switzerland', 'Turkey', 'Ukraine', 'United Kingdom',
-      'Vatican City']
+df_us_demo = pd.read_csv(input_file_name_us_demo)
+df_uk_demo = pd.read_csv(input_file_name_uk_demo)
 
-china = ['Anhui', 'Beijing', 'Chongqing', 'Fujian', 'Gansu', 'Guangdong',
-         'Guangxi', 'Guizhou', 'Hainan', 'Hebei', 'Heilongjiang', 'Henan',
-         'Hong Kong', 'Hubei', 'Hunan', 'Inner Mongolia', 'Jiangsu',
-         'Jiangxi', 'Jilin', 'Liaoning', 'Macau', 'Ningxia', 'Qinghai',
-         'Shaanxi', 'Shandong', 'Shanghai', 'Shanxi', 'Sichuan', 'Tianjin',
-         'Tibet', 'Xinjiang', 'Yunnan', 'Zhejiang']
+df = df_us
 
-region_options = {'Worldwide': available_countries,
-                  'United States': states,
-                  'Europe': eu,
-                  'China': china}
-
-df_us = pd.read_csv('data/df_us.csv')
-df_us['percentage'] = df_us['percentage'].astype(str)
-df_us['date'] = pd.to_datetime(df_us['date'])
-
-df_eu = pd.read_csv('data/df_eu.csv')
-df_eu['percentage'] = df_eu['percentage'].astype(str)
-df_eu['date'] = pd.to_datetime(df_eu['date'])
-
-df_china = pd.read_csv('data/df_china.csv')
-df_china['percentage'] = df_china['percentage'].astype(str)
-df_china['date'] = pd.to_datetime(df_china['date'])
-
-df_us_counties = pd.concat([pd.read_csv('data/df_us_county1.csv'),
-                            pd.read_csv('data/df_us_county2.csv'),
-                            pd.read_csv('data/df_us_county3.csv'),
-                            pd.read_csv('data/df_us_county4.csv')], ignore_index=True)
-df_us_counties['percentage'] = df_us_counties['percentage'].astype(str)
-df_us_counties['Country/Region'] = df_us_counties['Country/Region'].astype(str)
-df_us_counties['date'] = pd.to_datetime(df_us_counties['date'])
-
-@app.callback(
-    Output('confirmed_ind', 'figure'),
-    [Input('global_format', 'value')])
-def confirmed(view):
-    '''
-    creates the CUMULATIVE CONFIRMED indicator
-    '''
-    if view == 'Worldwide':
-        df = df_worldwide
-    elif view == 'United States':
-        df = df_us
-    elif view == 'Europe':
-        df = df_eu
-    elif view == 'China':
-        df = df_china
-    else:
-        df = df_worldwide
-
-    value = df[df['date'] == df['date'].iloc[-1]]['Confirmed'].sum()
-    delta = df[df['date'] == df['date'].unique()[-2]]['Confirmed'].sum()
-    return {
-            'data': [{'type': 'indicator',
-                    'mode': 'number+delta',
-                    'value': value,
-                    'delta': {'reference': delta,
-                              'valueformat': ',g',
-                              'relative': False,
-                              'increasing': {'color': dash_colors['blue']},
-                              'decreasing': {'color': dash_colors['green']},
-                              'font': {'size': 25}},
-                    'number': {'valueformat': ',',
-                              'font': {'size': 50}},
-                    'domain': {'y': [0, 1], 'x': [0, 1]}}],
-            'layout': go.Layout(
-                title={'text': "CUMULATIVE CONFIRMED"},
-                font=dict(color=dash_colors['red']),
-                paper_bgcolor=dash_colors['background'],
-                plot_bgcolor=dash_colors['background'],
-                height=200
-                )
-            }
-
-@app.callback(
-    Output('active_ind', 'figure'),
-    [Input('global_format', 'value')])
-def active(view):
-    '''
-    creates the CURRENTLY ACTIVE indicator
-    '''
-    if view == 'Worldwide':
-        df = df_worldwide
-    elif view == 'United States':
-        df = df_us
-    elif view == 'Europe':
-        df = df_eu
-    elif view == 'China':
-        df = df_china
-    else:
-        df = df_worldwide
-
-    value = df[df['date'] == df['date'].iloc[-1]]['Active'].sum()
-    delta = df[df['date'] == df['date'].unique()[-2]]['Active'].sum()
-    return {
-            'data': [{'type': 'indicator',
-                    'mode': 'number+delta',
-                    'value': value,
-                    'delta': {'reference': delta,
-                              'valueformat': ',g',
-                              'relative': False,
-                              'increasing': {'color': dash_colors['blue']},
-                              'decreasing': {'color': dash_colors['green']},
-                              'font': {'size': 25}},
-                    'number': {'valueformat': ',',
-                              'font': {'size': 50}},
-                    'domain': {'y': [0, 1], 'x': [0, 1]}}],
-            'layout': go.Layout(
-                title={'text': "CURRENTLY ACTIVE"},
-                font=dict(color=dash_colors['red']),
-                paper_bgcolor=dash_colors['background'],
-                plot_bgcolor=dash_colors['background'],
-                height=200
-                )
-            }
-
-@app.callback(
-    Output('recovered_ind', 'figure'),
-    [Input('global_format', 'value')])
-def recovered(view):
-    '''
-    creates the RECOVERED CASES indicator
-    '''
-    if view == 'Worldwide':
-        df = df_worldwide
-    elif view == 'United States':
-        df = df_us
-    elif view == 'Europe':
-        df = df_eu
-    elif view == 'China':
-        df = df_china
-    else:
-        df = df_worldwide
-
-    value = df[df['date'] == df['date'].iloc[-1]]['Recovered'].sum()
-    delta = df[df['date'] == df['date'].unique()[-2]]['Recovered'].sum()
-    return {
-            'data': [{'type': 'indicator',
-                    'mode': 'number+delta',
-                    'value': value,
-                    'delta': {'reference': delta,
-                              'valueformat': ',g',
-                              'relative': False,
-                              'increasing': {'color': dash_colors['blue']},
-                              'decreasing': {'color': dash_colors['green']},
-                              'font': {'size': 25}},
-                    'number': {'valueformat': ',',
-                              'font': {'size': 50}},
-                    'domain': {'y': [0, 1], 'x': [0, 1]}}],
-            'layout': go.Layout(
-                title={'text': "RECOVERED CASES"},
-                font=dict(color=dash_colors['red']),
-                paper_bgcolor=dash_colors['background'],
-                plot_bgcolor=dash_colors['background'],
-                height=200
-                )
-            }
-
-@app.callback(
-    Output('deaths_ind', 'figure'),
-    [Input('global_format', 'value')])
-def deaths(view):
-    '''
-    creates the DEATHS TO DATE indicator
-    '''
-    if view == 'Worldwide':
-        df = df_worldwide
-    elif view == 'United States':
-        df = df_us
-    elif view == 'Europe':
-        df = df_eu
-    elif view == 'China':
-        df = df_china
-    else:
-        df = df_worldwide
-
-    value = df[df['date'] == df['date'].iloc[-1]]['Deaths'].sum()
-    delta = df[df['date'] == df['date'].unique()[-2]]['Deaths'].sum()
-    return {
-            'data': [{'type': 'indicator',
-                    'mode': 'number+delta',
-                    'value': value,
-                    'delta': {'reference': delta,
-                              'valueformat': ',g',
-                              'relative': False,
-                              'increasing': {'color': dash_colors['blue']},
-                              'decreasing': {'color': dash_colors['green']},
-                              'font': {'size': 25}},
-                    'number': {'valueformat': ',',
-                              'font': {'size': 50}},
-                    'domain': {'y': [0, 1], 'x': [0, 1]}}],
-            'layout': go.Layout(
-                title={'text': "DEATHS TO DATE"},
-                font=dict(color=dash_colors['red']),
-                paper_bgcolor=dash_colors['background'],
-                plot_bgcolor=dash_colors['background'],
-                height=200
-                )
-            }
-
-@app.callback(
-    Output('worldwide_trend', 'figure'),
-    [Input('global_format', 'value'),
-     Input('population_select', 'value')])
-def worldwide_trend(view, population):
-    '''
-    creates the upper-left chart (aggregated stats for the view)
-    '''
-    if view == 'Worldwide':
-        df = df_worldwide
-    elif view == 'United States':
-        df = df_us
-        df_us.loc[df_us['Country/Region'] == 'Recovered', ['population']] = 0
-    elif view == 'Europe':
-        df = df_eu
-    elif view == 'China':
-        df = df_china
-    else:
-        df = df_worldwide
-
-    if population == 'absolute':
-        confirmed = df.groupby('date')['Confirmed'].sum()
-        active = df.groupby('date')['Active'].sum()
-        recovered = df.groupby('date')['Recovered'].sum()
-        deaths = df.groupby('date')['Deaths'].sum()
-        title_suffix = ''
-        hover = '%{y:,g}'
-    elif population == 'percent':
-        df = df.dropna(subset=['population'])
-        confirmed = df.groupby('date')['Confirmed'].sum() / df.groupby('date')['population'].sum()
-        active = df.groupby('date')['Active'].sum() / df.groupby('date')['population'].sum()
-        recovered = df.groupby('date')['Recovered'].sum() / df.groupby('date')['population'].sum()
-        deaths = df.groupby('date')['Deaths'].sum() / df.groupby('date')['population'].sum()
-        title_suffix = ' per 100,000 people'
-        hover = '%{y:,.2f}'
-    else:
-        confirmed = df.groupby('date')['Confirmed'].sum()
-        active = df.groupby('date')['Active'].sum()
-        recovered = df.groupby('date')['Recovered'].sum()
-        deaths = df.groupby('date')['Deaths'].sum()
-        title_suffix = ''
-        hover = '%{y:,g}'
-
-    traces = [go.Scatter(
-                    x=df.groupby('date')['date'].first(),
-                    y=confirmed,
-                    hovertemplate=hover,
-                    name="Confirmed",
-                    mode='lines'),
-                go.Scatter(
-                    x=df.groupby('date')['date'].first(),
-                    y=active,
-                    hovertemplate=hover,
-                    name="Active",
-                    mode='lines'),
-                go.Scatter(
-                    x=df.groupby('date')['date'].first(),
-                    y=recovered,
-                    hovertemplate=hover,
-                    name="Recovered",
-                    mode='lines'),
-                go.Scatter(
-                    x=df.groupby('date')['date'].first(),
-                    y=deaths,
-                    hovertemplate=hover,
-                    name="Deaths",
-                    mode='lines')]
-    return {
-            'data': traces,
-            'layout': go.Layout(
-                title="{} Infections{}".format(view, title_suffix),
-                xaxis_title="Date",
-                yaxis_title="Number of Cases",
-                font=dict(color=dash_colors['text']),
-                paper_bgcolor=dash_colors['background'],
-                plot_bgcolor=dash_colors['background'],
-                xaxis=dict(gridcolor=dash_colors['grid']),
-                yaxis=dict(gridcolor=dash_colors['grid'])
-                )
-            }
-
-@app.callback(
-    Output('country_select', 'options'),
-    [Input('global_format', 'value')])
-def set_active_options(selected_view):
-    '''
-    sets allowable options for regions in the upper-right chart drop-down
-    '''
-    return [{'label': i, 'value': i} for i in region_options[selected_view]]
-
-@app.callback(
-    Output('country_select', 'value'),
-    [Input('global_format', 'value'),
-     Input('country_select', 'options')])
-def set_countries_value(view, available_options):
-    '''
-    sets default selections for regions in the upper-right chart drop-down
-    '''
-    if view == 'Worldwide':
-        return ['US', 'Italy', 'United Kingdom', 'Spain', 'Russia', 'Brazil', 'Sweden', 'Belgium', 'Peru', 'India', 'Lithuania']
-    elif view == 'United States':
-        return ['New York', 'New Jersey', 'California', 'Texas', 'Florida', 'Georgia', 'Arizona', 'North Carolina', 'Colorado']
-    elif view == 'Europe':
-        return ['France', 'Germany', 'Italy', 'Spain', 'United Kingdom', 'Belgium', 'Sweden', 'Lithuania']
-    elif view == 'China':
-        return ['Hubei', 'Guangdong', 'Xinjiang', 'Zhejiang', 'Hunan', 'Hong Kong', 'Macau']
-    else:
-        return ['US', 'Italy', 'United Kingdom', 'Spain', 'France', 'Germany', 'Russia']
-
-@app.callback(
-    Output('active_countries', 'figure'),
-    [Input('global_format', 'value'),
-     Input('country_select', 'value'),
-     Input('column_select', 'value'),
-     Input('population_select', 'value')])
-def active_countries(view, countries, column, population):
-    '''
-    creates the upper-right chart (sub-region analysis)
-    '''
-    if view == 'Worldwide':
-        df = df_worldwide
-    elif view == 'United States':
-        df = df_us
-    elif view == 'Europe':
-        df = df_eu
-    elif view == 'China':
-        df = df_china
-    else:
-        df = df_worldwide
-
-    if population == 'absolute':
-        column_label = column
-        hover = '%{y:,g}<br>%{x}'
-    elif population == 'percent':
-        column_label = '{} per 100,000'.format(column)
-        df = df.dropna(subset=['population'])
-        hover = '%{y:,.2f}<br>%{x}'
-    else:
-        column_label = column
-        hover = '%{y:,g}<br>%{x}'
-
-    traces = []
-    countries = df[(df['Country/Region'].isin(countries)) &
-                   (df['date'] == df['date'].max())].groupby('Country/Region')['Confirmed'].sum().sort_values(ascending=False).index.to_list()
-    for country in countries:
-        if population == 'absolute':
-            y_data = df[df['Country/Region'] == country].groupby('date')[column].sum()
-            recovered = df[df['Country/Region'] == 'Recovered'].groupby('date')[column].sum()
-        elif population == 'percent':
-            y_data = df[df['Country/Region'] == country].groupby('date')[column].sum() / df[df['Country/Region'] == country].groupby('date')['population'].first()
-            recovered = df[df['Country/Region'] == 'Recovered'].groupby('date')[column].sum() / df[df['Country/Region'] == country].groupby('date')['population'].first()
-        else:
-            y_data = df[df['Country/Region'] == country].groupby('date')[column].sum()
-            recovered = df[df['Country/Region'] == 'Recovered'].groupby('date')[column].sum()
-
-        traces.append(go.Scatter(
-                    x=df[df['Country/Region'] == country].groupby('date')['date'].first(),
-                    y=y_data,
-                    hovertemplate=hover,
-                    name=country,
-                    mode='lines'))
-    if column == 'Recovered':
-        traces.append(go.Scatter(
-                    x=df[df['Country/Region'] == 'Recovered'].groupby('date')['date'].first(),
-                    y=recovered,
-                    hovertemplate=hover,
-                    name='Unidentified',
-                    mode='lines'))
-    return {
-            'data': traces,
-            'layout': go.Layout(
-                    title="{} by Region".format(column_label),
-                    xaxis_title="Date",
-                    yaxis_title="Number of Cases",
-                    font=dict(color=dash_colors['text']),
-                    paper_bgcolor=dash_colors['background'],
-                    plot_bgcolor=dash_colors['background'],
-                    xaxis=dict(gridcolor=dash_colors['grid']),
-                    yaxis=dict(gridcolor=dash_colors['grid']),
-                    hovermode='closest'
-                )
-            }
-
-@app.callback(
-    Output('world_map', 'figure'),
-    [Input('global_format', 'value'),
-     Input('date_slider', 'value')])
-def world_map(view, date_index):
-    '''
-    creates the lower-left chart (map)
-    '''
-    if view == 'Worldwide':
-        df = df_worldwide
-        scope = 'world'
-        projection_type = 'natural earth'
-        sizeref = 35
-    elif view == 'United States':
-        scope = 'usa'
-        projection_type = 'albers usa'
-        df = df_us_counties
-        sizeref = 7
-    elif view == 'Europe':
-        df = df_eu
-        scope = 'europe'
-        projection_type = 'natural earth'
-        sizeref = 15
-    elif view == 'China':
-        df = df_china
-        scope = 'asia'
-        projection_type = 'natural earth'
-        sizeref = 3
-    else:
-        df = df_worldwide
-        scope = 'world'
-        projection_type = 'natural earth',
-        sizeref = 10
-    df = df[(df['date'] == df['date'].unique()[date_index]) & (df['Confirmed'] > 0)]
-    return {
-            'data': [
-                go.Scattergeo(
-                    lon = df['Longitude'],
-                    lat = df['Latitude'],
-                    text = df['Country/Region'] + ': ' +\
-                        ['{:,}'.format(i) for i in df['Confirmed']] +\
-                        ' total cases, ' + df['percentage'] +\
-                        '% from previous week',
-                    hoverinfo = 'text',
-                    mode = 'markers',
-                    marker = dict(reversescale = False,
-                        autocolorscale = False,
-                        symbol = 'circle',
-                        size = np.sqrt(df['Confirmed']),
-                        sizeref = sizeref,
-                        sizemin = 0,
-                        line = dict(width=.5, color='rgba(0, 0, 0)'),
-                        colorscale = 'Reds',
-                        cmin = 0,
-                        color = df['share_of_last_week'],
-                        cmax = 100,
-                        colorbar = dict(
-                            title = "Percentage of<br>cases occurring in<br>the previous week",
-                            thickness = 30)
-                        )
-                    )
-            ],
-            'layout': go.Layout(
-                title ='Number of Cumulative Confirmed Cases (size of marker)<br>and Share of New Cases from the Previous Week (color)',
-                geo=dict(scope=scope,
-                        projection_type=projection_type,
-                        showland = True,
-                        landcolor = "rgb(100, 125, 100)",
-                        showocean = True,
-                        oceancolor = "rgb(80, 150, 250)",
-                        showcountries=True,
-                        showlakes=True),
-                font=dict(color=dash_colors['text']),
-                paper_bgcolor=dash_colors['background'],
-                plot_bgcolor=dash_colors['background']
-            )
-        }
-
-def hex_to_rgba(h, alpha=1):
-    '''
-    converts color value in hex format to rgba format with alpha transparency
-    '''
-    return tuple([int(h.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)] + [alpha])
-
-@app.callback(
-    Output('trajectory', 'figure'),
-    [Input('global_format', 'value'),
-     Input('date_slider', 'value')])
-def trajectory(view, date_index):
-    '''
-    creates the lower-right chart (trajectory)
-    '''
-    if view == 'Worldwide':
-        df = df_worldwide
-        scope = 'countries'
-        threshold = 50000
-    elif view == 'United States':
-        df = df_us
-        scope = 'states'
-        threshold = 10000
-    elif view == 'Europe':
-        df = df_eu
-        scope = 'countries'
-        threshold = 10000
-    elif view == 'China':
-        df = df_china
-        scope = 'provinces'
-        threshold = 1000
-    else:
-        df = df_worldwide
-        scope = 'countries'
-        threshold = 50000
-
-    date = df_worldwide['date'].unique()[date_index]
-
-    df = df.groupby(['date', 'Country/Region'], as_index=False)['Confirmed'].sum()
-    df['previous_week'] = df.groupby(['Country/Region'])['Confirmed'].shift(7, fill_value=0)
-    df['new_cases'] = df['Confirmed'] - df['previous_week']
-    df['new_cases'] = df['new_cases'].clip(lower=0)
-
-    xmax = np.log(1.25 * df['Confirmed'].max()) / np.log(10)
-    xmin = np.log(threshold) / np.log(10)
-    ymax = np.log(1.25 * df['new_cases'].max()) / np.log(10)
-    ymin = np.log(10)
-
-    countries_full = df.groupby(by='Country/Region', as_index=False)['Confirmed'].max().sort_values(by='Confirmed', ascending=False)['Country/Region'].to_list()
-    
-    df = df[df['date'] <= date]
-
-    countries = df.groupby(by='Country/Region', as_index=False)['Confirmed'].max().sort_values(by='Confirmed', ascending=False)
-    countries = countries[countries['Confirmed'] > threshold]['Country/Region'].to_list()
-    countries = [country for country in countries_full if country in countries]
-
-    traces = []
-    trace_colors = plotly.colors.qualitative.D3
-    color_idx = 0
-
-    for country in countries:
-        filtered_df = df[df['Country/Region'] == country].reset_index()
-        idx = filtered_df['Confirmed'].sub(threshold).gt(0).idxmax()
-        trace_data = filtered_df[idx:].copy()
-        trace_data['date'] = pd.to_datetime(trace_data['date'])
-        trace_data['date'] = trace_data['date'].dt.strftime('%b %d, %Y')
-
-        marker_size = [0] * (len(trace_data) - 1) + [10]
-        color = trace_colors[color_idx % len(trace_colors)]
-        marker_color = 'rgba' + str(hex_to_rgba(color, 1))
-        line_color = 'rgba' + str(hex_to_rgba(color, .5))
-
-        traces.append(
-            go.Scatter(
-                    x=trace_data['Confirmed'],
-                    y=trace_data['new_cases'],
-                    mode='lines+markers',
-                    marker=dict(color=marker_color,
-                                size=marker_size,
-                                line=dict(width=0)),
-                    line=dict(color=line_color, width=2),
-                    name=country,
-                    text = ['{}, {}: {:,} confirmed; {:,} from previous week'.format(country,
-                                                                                trace_data['date'].iloc[i],
-                                                                                trace_data['Confirmed'].iloc[i],
-                                                                                trace_data['new_cases'].iloc[i]) \
-                                                                                    for i in range(len(trace_data))],
-                    hoverinfo='text')
-        )
-
-        color_idx += 1
-
-    return {
-        'data': traces,
-        'layout': go.Layout(
-                title='Trajectory of Cases<br>({} with greater than {:,} confirmed cases)'.format(scope, threshold),
-                xaxis_type="log",
-                yaxis_type="log",
-                xaxis_title='Total Confirmed Cases',
-                yaxis_title='New Confirmed Cases (in the past week)',
-                font=dict(color=dash_colors['text']),
-                paper_bgcolor=dash_colors['background'],
-                plot_bgcolor=dash_colors['background'],
-                xaxis=dict(gridcolor=dash_colors['grid'],
-                           range=[xmin, xmax]),
-                yaxis=dict(gridcolor=dash_colors['grid'],
-                           range=[ymin, ymax]),
-                hovermode='closest',
-                showlegend=True
-            )
-        }
+# @app.callback(
+#     Output('table-section', 'children'),
+#     [Input('country-dropdown', 'value')])
+# def updateTable(value):
+#     table_df = df_us
+#     table_head = table_head_us
+#     if value == 'United States':
+#         table_df = df_us
+#         table_head = table_head_us
+#     elif value == 'United Kingdom':
+#         table_df = df_uk
+#         table_head = table_head_uk
+#     elif value == 'South Africa':
+#         table_df = df_sa
+#         table_head = table_head_sa
+#     return [
+#         dtb.DataTable(
+#             data=table_df.to_dict('records'),
+#             columns=[{'id': c, 'name': c} for c in table_df],
+#             page_size=10
+#         )
+#     ]
 
 layout = html.Div(style={'backgroundColor': dash_colors['background']}, children=[
-    dbc.Jumbotron(
+    dbc.Navbar(
         [
             dbc.Container(
                 dbc.Row(
@@ -643,9 +84,9 @@ layout = html.Div(style={'backgroundColor': dash_colors['background']}, children
                                     html.H1(children='HOME', id='home-nav',
                                         style={
                                             'textAlign': 'center',
-                                            'color': dash_colors['green'],
+                                            'color': '#b5d3ff',
                                             'margin': 0,
-                                            'padding': 50,
+                                            'padding': 10,
                                             'cursor': 'pointer',
                                             },      
                                     ),
@@ -665,9 +106,9 @@ layout = html.Div(style={'backgroundColor': dash_colors['background']}, children
                                     html.H1(children='FORM', id='form-nav',
                                     style={
                                         'textAlign': 'center',
-                                        'color': dash_colors['green'],
+                                        'color': '#b5d3ff',
                                         'margin': 0,
-                                        'padding': 50,
+                                        'padding': 10,
                                         'cursor': 'pointer'
                                         },      
                                     ),
@@ -675,7 +116,10 @@ layout = html.Div(style={'backgroundColor': dash_colors['background']}, children
                                 style={
                                     'textDecoration': 'none'
                                 }
-                            )
+                            ),
+                            style = {
+                                'display': 'inline'
+                            }
                         ),
 
                         dbc.Col(
@@ -686,9 +130,9 @@ layout = html.Div(style={'backgroundColor': dash_colors['background']}, children
                                     html.H1(children='INSIGHTS', id='insights-nav',
                                     style={
                                         'textAlign': 'center',
-                                        'color': dash_colors['green'],
+                                        'color': '#b5d3ff',
                                         'margin': 0,
-                                        'padding': 50,
+                                        'padding': 10,
                                         'cursor': 'pointer'
                                         },      
                                     ),
@@ -701,18 +145,23 @@ layout = html.Div(style={'backgroundColor': dash_colors['background']}, children
                     ]
                 ),
                 fluid=True,
+                style={
+                    'color': '#e6f0ff',
+                    'display':'inline',
+                    'backgroundColor': dash_colors['blue'],
+                }
             )
         ],
-        fluid=True,
+        sticky=True,
         style={
             'textAlign': 'center',
-            'color': dash_colors['green'],
-            'backgroundColor': 'black',
+            'color': '#10274a',
+            'backgroundColor': dash_colors['blue'],
             'marginTop': 0,
-            'padding': 0
+            'padding': 0,
         }
     ),
-    html.H1(children='COVID-19',
+    html.H1(children='COVID-19 Comparison analysis across demographics for UK, US and SA',
         style={
             'textAlign': 'center',
             'color': dash_colors['text'],
@@ -720,170 +169,205 @@ layout = html.Div(style={'backgroundColor': dash_colors['background']}, children
             }
         ),
 
-    html.Div(children='Data last updated {} end-of-day'.format(update), style={
-        'textAlign': 'center',
-        'color': dash_colors['text']
-        }),
     
-    html.Div(children='Select focus for the dashboard:', style={
+    html.Div(children='Select focus for the datatable, filter through for US, UK and SA:', style={
         'textAlign': 'center',
         'color': dash_colors['text']
         }),
 
-    html.Div(dcc.RadioItems(id='global_format',
-            options=[{'label': i, 'value': i} for i in ['Worldwide', 'United States', 'Europe', 'China']],
-            value='Worldwide',
-            labelStyle={'float': 'center', 'display': 'inline-block'}
-            ), style={'textAlign': 'center',
-                'color': dash_colors['text'],
-                'width': '100%',
-                'float': 'center',
-                'display': 'inline-block'
-            }
+    html.Div(
+        dcc.Dropdown(
+            id='country-dropdown',
+            options=[
+                {'label': '{}'.format(i), 'value': i} for i in [
+                    'United States', 'United Kingdom', 'South Africa'
+                ]
+            ],
+            value="United States",
         ),
+    ),
 
-    html.Div(dcc.Graph(id='confirmed_ind'),
-        style={
-            'textAlign': 'center',
-            'color': dash_colors['red'],
-            'width': '25%',
-            'float': 'left',
-            'display': 'inline-block'
-            }
-        ),
+    html.Div(id='datatable-section'),
+    html.Div(id='datatable-interactivity-container'),
 
-    html.Div(dcc.Graph(id='active_ind'),
-        style={
-            'textAlign': 'center',
-            'color': dash_colors['red'],
-            'width': '25%',
-            'float': 'left',
-            'display': 'inline-block'
-            }
-        ),
-
-    html.Div(dcc.Graph(id='deaths_ind'),
-        style={
-            'textAlign': 'center',
-            'color': dash_colors['red'],
-            'width': '25%',
-            'float': 'left',
-            'display': 'inline-block'
-            }
-        ),
-
-    html.Div(dcc.Graph(id='recovered_ind'),
-        style={
-            'textAlign': 'center',
-            'color': dash_colors['red'],
-            'width': '25%',
-            'float': 'left',
-            'display': 'inline-block'
-            }
-        ),
-
-    html.Div(dcc.Markdown('Display data in the below two charts as total values or as values relative to population:'),
+    html.Div(dcc.Markdown('''
+        &nbsp;  
+        &nbsp;  
+        
+        ### Visualization of Cases Across Regions
+        '''),
         style={
             'textAlign': 'center',
             'color': dash_colors['text'],
             'width': '100%',
             'float': 'center',
-            'display': 'inline-block'}),
-
-    html.Div(dcc.RadioItems(id='population_select',
-            options=[{'label': 'Total values', 'value': 'absolute'},
-                        {'label': 'Values per 100,000 of population', 'value': 'percent'}],
-            value='absolute',
-            labelStyle={'float': 'center', 'display': 'inline-block'},
-            style={'textAlign': 'center',
-                'color': dash_colors['text'],
-                'width': '100%',
-                'float': 'center',
-                'display': 'inline-block'
-                })
-        ),
-
-    html.Div(  # worldwide_trend and active_countries
-        [
-            html.Div(
-                dcc.Graph(id='worldwide_trend'),
-                style={'width': '50%', 'float': 'left', 'display': 'inline-block'}
-                ),
-            html.Div([
-                dcc.Graph(id='active_countries'),
-                html.Div([
-                    dcc.RadioItems(
-                        id='column_select',
-                        options=[{'label': i, 'value': i} for i in ['Confirmed', 'Active', 'Recovered', 'Deaths']],
-                        value='Confirmed',
-                        labelStyle={'float': 'center', 'display': 'inline-block'},
-                        style={'textAlign': 'center',
-                            'color': dash_colors['text'],
-                            'width': '100%',
-                            'float': 'center',
-                            'display': 'inline-block'
-                            }),
-                    dcc.Dropdown(
-                        id='country_select',
-                        multi=True,
-                        style={'width': '95%', 'float': 'center'}
-                        )],
-                    style={'width': '100%', 'float': 'center', 'display': 'inline-block'})
-                ],
-                style={'width': '50%', 'float': 'right', 'vertical-align': 'bottom'}
-            )],
-        style={'width': '98%', 'float': 'center', 'vertical-align': 'bottom'}
-        ),
-
-    html.Div(dcc.Markdown(' '),
-        style={
-            'textAlign': 'center',
-            'color': dash_colors['text'],
-            'width': '100%',
-            'float': 'center',
-            'display': 'inline-block'}),
-
-    html.Div(dcc.Graph(id='world_map'),
-        style={'width': '50%',
             'display': 'inline-block'}
         ),
 
-    html.Div([dcc.Graph(id='trajectory')],
-        style={'width': '50%',
-            'float': 'right',
-            'display': 'inline-block'}),
+    html.Div(id='graph1', children=[
+        dcc.Graph(
+            id='example-graph',
+            figure={
+                'data': [
+                    {'x': df_us["State"], 'y': df_us[" Cases "], 'type': 'bar', 'name': 'Cases'},
+                    {'x': df_us["State"], 'y': list(df_us_demo["Total Minority Percentage"]), 'type': 'bar', 'name': u'Minority'},
+                ],
+                'layout': {
+                    'title': 'Cases and Minority in US States (click the "cases" checkbox to toggle view))'
+                }
+            }
+        )
+    ]),
 
-    html.Div(html.Div(dcc.Slider(id='date_slider',
-                min=list(range(len(df_worldwide['date'].unique())))[0],
-                max=list(range(len(df_worldwide['date'].unique())))[-1],
-                value=list(range(len(df_worldwide['date'].unique())))[-1],
-                # marks={(idx): {'label': date.format(u"\u2011", u"\u2011") if
-                #     (idx-4)%7==0 else '', 'style':{'transform': 'rotate(30deg) translate(0px, 7px)'}} for idx, date in
-                #     enumerate(sorted(set([item.strftime("%m{}%d{}%Y") for
-                #     item in df_worldwide['date']])))},  # for weekly marks,
-                marks={(idx): {'label': date.format(u"\u2011", u"\u2011") if
-                    date[4:6] in ['01', '15'] else '', 'style':{'transform': 'rotate(30deg) translate(0px, 7px)'}} for idx, date in
-                    enumerate(sorted([item.strftime("%m{}%d{}%Y") for
-                    item in pd.Series(df_worldwide['date'].unique())],
-                    key=lambda date: datetime.strptime(date, '%m{}%d{}%Y')))},  # for bi-monthly marks
-                step=1,
-                vertical=False,
-                updatemode='mouseup'),
-            style={'width': '94.74%', 'float': 'left'}),  # width = 1 - (100 - x) / x
-        style={'width': '95%', 'float': 'right'}),  # width = x
-    
-    html.Div(dcc.Markdown('''
-            &nbsp;  
-            &nbsp;  
-            
-            Source data: [Johns Hopkins CSSE](https://github.com/CSSEGISandData/COVID-19)  
-            '''),
-            style={
-                'textAlign': 'center',
-                'color': dash_colors['text'],
-                'width': '100%',
-                'float': 'center',
-                'display': 'inline-block'}
-            )
-        ])
+    html.Div(id='graph2', children=[
+        dcc.Graph(
+            id='example-graph2',
+            figure={
+                'data': [
+                    {'x': df_uk_demo["Region"], 'y': df_uk_demo["Percentage minority ethnicities"], 'type': 'bar', 'name': 'Cases'},
+                    # {'x': df_us["State"], 'y': list(df_us_demo["Total Minority Percentage"]), 'type': 'bar', 'name': u'Minority'},
+                ],
+                'layout': {
+                    'title': 'Demographics and Cases in the UK (click the checkbox to toggle view))'
+                }
+            }
+        )
+    ]),
 
+    html.Div(id='graph3', children=[
+        dcc.Graph(
+            id='example-graph3',
+            figure={
+                'data': [
+                    {'x': df_sa["County"], 'y': df_sa["Total Cases "], 'type': 'bar', 'name': 'Cases'},
+                    # {'x': df_us["State"], 'y': list(df_us_demo["Total Minority Percentage"]), 'type': 'bar', 'name': u'Minority'},
+                ],
+                'layout': {
+                    'title': 'Cases in South Africa Regions (click the checkbox to toggle view))'
+                }
+            }
+        )
+    ]),
+
+    # html.Div([
+    #     dtb.DataTable(
+    #         id='datatable-interactivity',
+    #         columns=[
+    #             {"name": i, "id": i, "deletable": True, "selectable": True} for i in df.columns
+    #         ],
+    #         data=df.to_dict('records'),
+    #         editable=True,
+    #         filter_action="native",
+    #         sort_action="native",
+    #         sort_mode="multi",
+    #         column_selectable="single",
+    #         row_selectable="multi",
+    #         row_deletable=True,
+    #         selected_columns=[],
+    #         selected_rows=[],
+    #         page_action="native",
+    #         page_current= 0,
+    #         page_size= 10,
+    #     ),
+    #     html.Div(id='datatable-interactivity-container')
+    # ]),
+
+])
+
+# input_file_name_us = 'data/raw_data_csv/SA Data_Case by County.csv'
+# df_sa = pd.read_csv(input_file_name_us)
+# table_head = list(df_sa.columns.values)
+
+@app.callback(
+    Output('datatable-section', 'children'),
+    [Input('country-dropdown', 'value')])
+def updateTable(value):
+    global df
+    if value == 'United States':
+        df = df_us
+    elif value == 'United Kingdom':
+        df = df_uk
+    elif value == 'South Africa':
+        df = df_sa
+    return [
+        dtb.DataTable(
+            id='datatable-interactivity',
+            columns=[
+                {"name": i, "id": i, "deletable": True, "selectable": True} for i in df.columns
+            ],
+            data=df.to_dict('records'),
+            editable=True,
+            filter_action="native",
+            sort_action="native",
+            sort_mode="multi",
+            column_selectable="single",
+            row_selectable="multi",
+            row_deletable=True,
+            selected_columns=[],
+            selected_rows=[],
+            page_action="native",
+            page_current= 0,
+            page_size= 10,
+        )
+    ]
+
+@app.callback(
+    Output('datatable-interactivity', 'style_data_conditional'),
+    Input('datatable-interactivity', 'selected_columns')
+)
+def update_styles(selected_columns):
+    return [{
+        'if': { 'column_id': i },
+        'background_color': '#D2F3FF'
+    } for i in selected_columns]
+
+@app.callback(
+    Output('datatable-interactivity-container', "children"),
+    Input('datatable-interactivity', "derived_virtual_data"),
+    Input('datatable-interactivity', "derived_virtual_selected_rows"))
+def update_graphs(rows, derived_virtual_selected_rows):
+    # When the table is first rendered, `derived_virtual_data` and
+    # `derived_virtual_selected_rows` will be `None`. This is due to an
+    # idiosyncrasy in Dash (unsupplied properties are always None and Dash
+    # calls the dependent callbacks when the component is first rendered).
+    # So, if `rows` is `None`, then the component was just rendered
+    # and its value will be the same as the component's dataframe.
+    # Instead of setting `None` in here, you could also set
+    # `derived_virtual_data=df.to_rows('dict')` when you initialize
+    # the component.
+    if derived_virtual_selected_rows is None:
+        derived_virtual_selected_rows = []
+
+    dff = df if rows is None else pd.DataFrame(rows)
+
+    colors = ['#7FDBFF' if i in derived_virtual_selected_rows else '#0074D9'
+              for i in range(len(dff))]
+
+    return [
+        dcc.Graph(
+            id=column,
+            figure={
+                "data": [
+                    {
+                        "x": dff[" Cases "] or dff["areaName"] or dff["State"],
+                        "y": dff[column],
+                        "type": "bar",
+                        "marker": {"color": colors},
+                    }
+                ],
+                "layout": {
+                    "xaxis": {"automargin": True},
+                    "yaxis": {
+                        "automargin": True,
+                        "title": {"text": column}
+                    },
+                    "height": 250,
+                    "margin": {"t": 10, "l": 10, "r": 10},
+                },
+            },
+        )
+        # check if column exists - user may have deleted it
+        # If `column.deletable=False`, then you don't
+        # need to do this check.
+        for column in [" Cases ", "Deaths", "Population as at 2019"] if column in dff
+    ]
