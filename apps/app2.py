@@ -14,7 +14,7 @@ dash_colors = {
     'green': '#5bc246'
 }
 
-layout = html.Div( style={'backgroundColor': dash_colors['background']}, children =
+layout = html.Div(style={'backgroundColor': dash_colors['background']}, children =
     [   
         dbc.Navbar(
             [
@@ -111,13 +111,13 @@ layout = html.Div( style={'backgroundColor': dash_colors['background']}, childre
         style={
             'textAlign': 'center',
             'color': dash_colors['text'],
-            'marginTop': 40
+            'marginTop': 40,
             }
         ),
 
         html.Div(children='Please enter your additional information here to be viewed in INSIGHTS.', style={
             'textAlign': 'center',
-            'color': dash_colors['text']
+            'color': dash_colors['text'],
             }),
         
         html.Div(children='We keep your infomation safe and protected.', style={
@@ -160,8 +160,6 @@ layout = html.Div( style={'backgroundColor': dash_colors['background']}, childre
                                 ],
                                 row=True,
                             ),
-
-
 
                             dbc.FormGroup(
                                 [

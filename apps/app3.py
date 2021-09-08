@@ -237,7 +237,7 @@ layout = html.Div( style={'backgroundColor': dash_colors['background']}, childre
 # ------------- Added Stuff ------------ 
 @app.callback(
     Output('datatable-interactivity2', 'style_data_conditional'),
-    Input('datatable-interactivity2', 'selected_columns')
+    [Input('datatable-interactivity2', 'selected_columns')]
 )
 def update_styles(selected_columns):
     return [{
@@ -247,8 +247,8 @@ def update_styles(selected_columns):
 
 @app.callback(
     Output('datatable-interactivity-container2', "children"),
-    Input('datatable-interactivity2', "derived_virtual_data"),
-    Input('datatable-interactivity2', "derived_virtual_selected_rows"))
+    [Input('datatable-interactivity2', "derived_virtual_data"),
+    Input('datatable-interactivity2', "derived_virtual_selected_rows")])
 def update_graphs(rows, derived_virtual_selected_rows):
     if derived_virtual_selected_rows is None:
         derived_virtual_selected_rows = []
